@@ -26,6 +26,7 @@ export interface Move {
 
 export interface LeaderboardEntry {
   rank: number;
+  playerId: number;
   name: string;
   score: number;
 }

@@ -37,7 +37,7 @@ export interface LeaderboardEntry {
   rank: number;
   playerId: number;
   name: string;
-  value: number;
+  score: number;
 }
 
 export interface GameWithPlayers extends Omit<Game, 'grid'> {
@@ -367,7 +367,7 @@ export async function getLeaderboard(
         ROW_NUMBER() OVER (ORDER BY total_wins DESC) as rank,
         id as playerId,
         name,
-        total_wins as value
+        total_wins as score
       FROM players 
       WHERE total_wins > 0
       ORDER BY total_wins DESC 
@@ -379,7 +379,7 @@ export async function getLeaderboard(
         ROW_NUMBER() OVER (ORDER BY (CAST(total_moves_in_wins AS FLOAT) / total_wins) ASC) as rank,
         id as playerId,
         name,
-        ROUND(CAST(total_moves_in_wins AS FLOAT) / total_wins, 2) as value
+        ROUND(CAST(total_moves_in_wins AS FLOAT) / total_wins, 2) as score
       FROM players 
       WHERE total_wins > 0
       ORDER BY (CAST(total_moves_in_wins AS FLOAT) / total_wins) ASC 
