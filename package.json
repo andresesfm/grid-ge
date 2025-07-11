@@ -7,9 +7,11 @@
   "dependencies": {
     "axios": "^1.6.0",
     "express": "^4.21.2",
+    "framer-motion": "^12.23.3",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "react-router-dom": "6.29.0"
+    "react-router-dom": "^6.29.0",
+    "zustand": "^5.0.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
@@ -38,6 +40,7 @@
     "@types/node": "^20.0.0",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
+    "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react": "^4.2.0",
     "@vitest/ui": "^3.0.0",
     "babel-jest": "^29.7.0",
@@ -52,9 +55,11 @@
     "jest-environment-node": "^29.7.0",
     "jiti": "2.4.2",
     "jsdom": "~22.1.0",
+    "knex": "^3.1.0",
     "nx": "21.2.2",
     "prettier": "^2.6.2",
     "react-refresh": "^0.10.0",
+    "sqlite3": "^5.1.7",
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.1",
     "tslib": "^2.3.0",
