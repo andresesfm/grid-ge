@@ -30,14 +30,25 @@ export const LobbyView: React.FC = () => {
         console.log('Fetching games...');
         setIsLoading(true);
 
-        // Note: These endpoints are not yet implemented in the API
-        // For now, we'll show empty arrays and handle gracefully
-        setWaitingGames([]);
-        setUserGames([]);
-        console.log('Games fetched successfully');
+        // Fetch waiting games and user's games in parallel
+        const [waitingGamesData, userGamesData] = await Promise.all([
+          api.getWaitingGames(),
+          api.getUserGames(currentPlayer.id),
+        ]);
+
+        setWaitingGames(waitingGamesData);
+        setUserGames(userGamesData);
+        console.log('Games fetched successfully', {
+          waitingGames: waitingGamesData.length,
+          userGames: userGamesData.length,
+        });
       } catch (error) {
         console.error('Failed to fetch games:', error);
-        // Don't show toast for now since endpoints don't exist
+        if (error instanceof ApiError) {
+          addToast(`Failed to fetch games: ${error.message}`, 'error');
+        } else {
+          addToast('Failed to fetch games', 'error');
+        }
       } finally {
         setIsLoading(false);
         console.log('Loading finished');
@@ -46,10 +57,10 @@ export const LobbyView: React.FC = () => {
 
     fetchGames();
 
-    // Temporarily disable polling to debug rerendering issues
-    // const interval = setInterval(fetchGames, 5000);
-    // return () => clearInterval(interval);
-  }, [currentPlayer]);
+    // Re-enable polling now that API endpoints work
+    const interval = setInterval(fetchGames, 5000);
+    return () => clearInterval(interval);
+  }, [currentPlayer, addToast]);
 
   const handleCreateGame = async () => {
     if (!currentPlayer) return;

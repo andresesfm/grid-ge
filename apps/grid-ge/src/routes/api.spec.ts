@@ -179,6 +179,10 @@ describe('API Integration Tests', () => {
             [0, 0, 0],
             [0, 0, 0],
           ],
+          player1: {
+            id: player1Id,
+            name: 'Player1',
+          },
         });
       });
 

@@ -40,6 +40,12 @@ export interface LeaderboardEntry {
   value: number;
 }
 
+export interface GameWithPlayers extends Omit<Game, 'grid'> {
+  grid: Grid; // parsed grid instead of JSON string
+  player1?: { id: number; name: string } | null;
+  player2?: { id: number; name: string } | null;
+}
+
 // Database configuration
 let db: Knex;
 
@@ -124,14 +130,26 @@ export async function createPlayer(name: string): Promise<Player> {
     );
     return result[0];
   } catch (error: unknown) {
+    console.log('Database error in createPlayer:', error);
     if (
       error &&
       typeof error === 'object' &&
       'code' in error &&
-      error.code === 'SQLITE_CONSTRAINT_UNIQUE'
+      (error.code === 'SQLITE_CONSTRAINT_UNIQUE' ||
+        error.code === 'SQLITE_CONSTRAINT')
     ) {
       throw new Error('Player with this name already exists');
     }
+    if (
+      error &&
+      typeof error === 'object' &&
+      'message' in error &&
+      typeof error.message === 'string' &&
+      error.message.includes('UNIQUE constraint failed')
+    ) {
+      throw new Error('Player with this name already exists');
+    }
+    console.log('Unhandled database error:', error);
     throw error;
   }
 }
@@ -168,10 +186,63 @@ export async function createGame(
   return result[0];
 }
 
-export async function getGameById(gameId: string): Promise<Game | null> {
+export async function getGameById(
+  gameId: string
+): Promise<GameWithPlayers | null> {
   const db = getDatabase();
-  const result = await db.raw('SELECT * FROM games WHERE id = ?', [gameId]);
-  return result[0] || null;
+
+  try {
+    // First, get the basic game data
+    const gameResult = await db.raw('SELECT * FROM games WHERE id = ?', [
+      gameId,
+    ]);
+    const game = gameResult[0];
+
+    if (!game) {
+      return null;
+    }
+
+    // Get player 1 info
+    let player1 = null;
+    if (game.player1_id) {
+      const p1Result = await db.raw('SELECT * FROM players WHERE id = ?', [
+        game.player1_id,
+      ]);
+      if (p1Result[0]) {
+        player1 = { id: game.player1_id, name: p1Result[0].name };
+      }
+    }
+
+    // Get player 2 info
+    let player2 = null;
+    if (game.player2_id) {
+      const p2Result = await db.raw('SELECT * FROM players WHERE id = ?', [
+        game.player2_id,
+      ]);
+      if (p2Result[0]) {
+        player2 = { id: game.player2_id, name: p2Result[0].name };
+      }
+    }
+
+    // Return the enhanced game object
+    const result = {
+      ...game,
+      grid: JSON.parse(game.grid),
+    };
+
+    if (player1) {
+      result.player1 = player1;
+    }
+
+    if (player2) {
+      result.player2 = player2;
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error in getGameById:', error);
+    throw error;
+  }
 }
 
 export async function joinGame(
@@ -337,4 +408,49 @@ export async function getLeaderboard(
 
   const result = await db.raw(query);
   return result;
+}
+
+export async function getGamesByStatus(status: GameStatus): Promise<Game[]> {
+  const db = getDatabase();
+
+  const games = await db('games')
+    .leftJoin('players as p1', 'games.player1_id', 'p1.id')
+    .leftJoin('players as p2', 'games.player2_id', 'p2.id')
+    .select('games.*', 'p1.name as player1_name', 'p2.name as player2_name')
+    .where('games.status', status)
+    .orderBy('games.created_at', 'desc');
+
+  return games.map((game) => ({
+    ...game,
+    grid: JSON.parse(game.grid),
+    player1: game.player1_name
+      ? { id: game.player1_id, name: game.player1_name }
+      : undefined,
+    player2: game.player2_name
+      ? { id: game.player2_id, name: game.player2_name }
+      : undefined,
+  }));
+}
+
+export async function getGamesByPlayerId(playerId: number): Promise<Game[]> {
+  const db = getDatabase();
+
+  const games = await db('games')
+    .leftJoin('players as p1', 'games.player1_id', 'p1.id')
+    .leftJoin('players as p2', 'games.player2_id', 'p2.id')
+    .select('games.*', 'p1.name as player1_name', 'p2.name as player2_name')
+    .where('games.player1_id', playerId)
+    .orWhere('games.player2_id', playerId)
+    .orderBy('games.updated_at', 'desc');
+
+  return games.map((game) => ({
+    ...game,
+    grid: JSON.parse(game.grid),
+    player1: game.player1_name
+      ? { id: game.player1_id, name: game.player1_name }
+      : undefined,
+    player2: game.player2_name
+      ? { id: game.player2_id, name: game.player2_name }
+      : undefined,
+  }));
 }

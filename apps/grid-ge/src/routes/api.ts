@@ -8,6 +8,8 @@ import {
   joinGame as dbJoinGame,
   makeMove as dbMakeMove,
   getLeaderboard,
+  getGamesByStatus,
+  getGamesByPlayerId,
 } from '../db/database';
 import {
   createEmptyGrid,
@@ -154,7 +156,9 @@ router.get(
         player2_id: game.player2_id,
         current_turn_player_id: game.current_turn_player_id,
         winner_id: game.winner_id,
-        grid: JSON.parse(game.grid),
+        grid: game.grid, // grid is already parsed in getGameById
+        player1: game.player1,
+        player2: game.player2,
       });
     } catch {
       res.status(500).json({ error: 'Internal server error' });
@@ -206,14 +210,12 @@ router.post(
         return;
       }
 
-      const currentGrid = JSON.parse(game.grid);
+      const currentGrid = game.grid; // grid is already parsed in getGameById
 
       if (!isMoveValid(currentGrid, row, col)) {
-        res
-          .status(409)
-          .json({
-            error: 'Invalid move: cell is already occupied or out of bounds',
-          });
+        res.status(409).json({
+          error: 'Invalid move: cell is already occupied or out of bounds',
+        });
         return;
       }
 
@@ -271,6 +273,40 @@ router.post(
     }
   }
 );
+// Games Management - Get games by status or player
+router.get('/games', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { status, playerId } = req.query;
+
+    if (status && typeof status === 'string') {
+      // Get games by status (e.g., waiting, in_progress, completed)
+      const games = await getGamesByStatus(status as GameStatus);
+      res.status(200).json(games);
+      return;
+    }
+
+    if (playerId && typeof playerId === 'string') {
+      // Get games for a specific player
+      const playerIdNum = parseInt(playerId, 10);
+      if (isNaN(playerIdNum)) {
+        res.status(400).json({ error: 'playerId must be a valid number' });
+        return;
+      }
+
+      const games = await getGamesByPlayerId(playerIdNum);
+      res.status(200).json(games);
+      return;
+    }
+
+    // If no query parameters, return bad request
+    res.status(400).json({
+      error: 'Either status or playerId query parameter is required',
+    });
+  } catch (error) {
+    console.error('Error fetching games:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 // Leaderboard
 router.get(
@@ -280,12 +316,10 @@ router.get(
       const { by } = req.query;
 
       if (!by || (by !== 'wins' && by !== 'efficiency')) {
-        res
-          .status(400)
-          .json({
-            error:
-              'Query parameter "by" is required and must be "wins" or "efficiency"',
-          });
+        res.status(400).json({
+          error:
+            'Query parameter "by" is required and must be "wins" or "efficiency"',
+        });
         return;
       }
 
