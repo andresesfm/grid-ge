@@ -1,0 +1,17 @@
+{
+  "name": "@grid-ge/grid-ge-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "implicitDependencies": ["@grid-ge/grid-ge"],
+  "targets": {
+    "e2e": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
+      "options": {
+        "jestConfig": "apps/grid-ge-e2e/jest.config.ts",
+        "passWithNoTests": true
+      },
+      "dependsOn": ["@grid-ge/grid-ge:build", "@grid-ge/grid-ge:serve"]
+    }
+  }
+}
