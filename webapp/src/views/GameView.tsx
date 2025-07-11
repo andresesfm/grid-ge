@@ -100,6 +100,12 @@ export const GameView: React.FC = () => {
   const getGameStatusText = () => {
     if (!game || !currentPlayer) return '';
 
+    const isPlayerInGame = game.player1_id === currentPlayer.id || game.player2_id === currentPlayer.id;
+
+    if (!isPlayerInGame) {
+      return 'Joining game...';
+    }
+
     switch (game.status) {
       case 'waiting':
         return 'Waiting for opponent to join...';

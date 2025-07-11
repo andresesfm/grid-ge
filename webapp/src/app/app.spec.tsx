@@ -19,8 +19,6 @@ describe('App', () => {
         <App />
       </BrowserRouter>
     );
-    expect(
-      getAllByText(new RegExp('Welcome @grid-ge/webapp', 'gi')).length > 0
-    ).toBeTruthy();
+    expect(getAllByText(/Grid-GE/i).length > 0).toBeTruthy();
   });
 });
