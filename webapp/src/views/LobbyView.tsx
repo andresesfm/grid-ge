@@ -20,46 +20,55 @@ export const LobbyView: React.FC = () => {
     if (!currentPlayer) {
       navigate('/', { replace: true });
     }
-  }, [currentPlayer, navigate]); // Fetch games on component mount and then poll for updates
+  }, [currentPlayer, navigate]);
+
+  // Fetch games on component mount and then poll for updates
   useEffect(() => {
-    console.log('LobbyView useEffect triggered, currentPlayer:', currentPlayer);
     if (!currentPlayer) return;
 
-    const fetchGames = async () => {
-      try {
-        console.log('Fetching games...');
-        setIsLoading(true);
+    let isMounted = true;
 
-        // Fetch waiting games and user's games in parallel
+    const fetchGames = async () => {
+      // Only show the main loading indicator on the initial fetch.
+      // On subsequent polls, the stale data will remain visible until the new data arrives.
+      if (waitingGames.length === 0 && userGames.length === 0) {
+        setIsLoading(true);
+      }
+
+      try {
         const [waitingGamesData, userGamesData] = await Promise.all([
           api.getWaitingGames(),
           api.getUserGames(currentPlayer.id),
         ]);
 
-        setWaitingGames(waitingGamesData);
-        setUserGames(userGamesData);
-        console.log('Games fetched successfully', {
-          waitingGames: waitingGamesData.length,
-          userGames: userGamesData.length,
-        });
+        if (isMounted) {
+          setWaitingGames(waitingGamesData);
+          setUserGames(userGamesData);
+        }
       } catch (error) {
-        console.error('Failed to fetch games:', error);
-        if (error instanceof ApiError) {
-          addToast(`Failed to fetch games: ${error.message}`, 'error');
-        } else {
-          addToast('Failed to fetch games', 'error');
+        if (isMounted) {
+          console.error('Failed to fetch games:', error);
+          if (error instanceof ApiError) {
+            addToast(`Failed to fetch games: ${error.message}`, 'error');
+          } else {
+            addToast('Failed to fetch games', 'error');
+          }
         }
       } finally {
-        setIsLoading(false);
-        console.log('Loading finished');
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchGames();
 
-    // Re-enable polling now that API endpoints work
     const interval = setInterval(fetchGames, 5000);
-    return () => clearInterval(interval);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [currentPlayer, addToast]);
 
   const handleCreateGame = async () => {
