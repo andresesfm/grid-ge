@@ -8,6 +8,9 @@
     },
     {
       "path": "./apps/grid-ge"
+    },
+    {
+      "path": "./webapp"
     }
   ]
 }
