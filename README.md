@@ -4,6 +4,10 @@
 
 ✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
 
+## Screenshot
+
+![GridGe Application](img/Screenshot%20from%202025-07-10%2021-43-14.png)
+
 [Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/express?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
 
 ## Finish your CI setup
