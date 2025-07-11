@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   createPlayer,
   getPlayerById,
+  getPlayerByName,
   createGame as dbCreateGame,
   getGameById,
   joinGame as dbJoinGame,
@@ -34,19 +35,21 @@ router.post('/players', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const player = await createPlayer(name.trim());
+    const trimmedName = name.trim();
+
+    const existingPlayer = await getPlayerByName(trimmedName);
+    if (existingPlayer) {
+      res.status(409).json({ error: 'Player with this name already exists' });
+      return;
+    }
+
+    const player = await createPlayer(trimmedName);
     res.status(201).json({
       id: player.id,
       name: player.name,
     });
   } catch (error: unknown) {
-    if (
-      error instanceof Error &&
-      error.message === 'Player with this name already exists'
-    ) {
-      res.status(409).json({ error: 'Player with this name already exists' });
-      return;
-    }
+    console.error('Error in POST /players:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

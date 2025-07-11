@@ -130,27 +130,8 @@ export async function createPlayer(name: string): Promise<Player> {
     );
     return result[0];
   } catch (error: unknown) {
-    console.log('Database error in createPlayer:', error);
-    if (
-      error &&
-      typeof error === 'object' &&
-      'code' in error &&
-      (error.code === 'SQLITE_CONSTRAINT_UNIQUE' ||
-        error.code === 'SQLITE_CONSTRAINT')
-    ) {
-      throw new Error('Player with this name already exists');
-    }
-    if (
-      error &&
-      typeof error === 'object' &&
-      'message' in error &&
-      typeof error.message === 'string' &&
-      error.message.includes('UNIQUE constraint failed')
-    ) {
-      throw new Error('Player with this name already exists');
-    }
-    console.log('Unhandled database error:', error);
-    throw error;
+    console.error('Database error in createPlayer:', error);
+    throw new Error('Could not create player due to a database error.');
   }
 }
 
