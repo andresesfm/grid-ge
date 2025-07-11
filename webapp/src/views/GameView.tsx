@@ -215,7 +215,10 @@ export const GameView: React.FC = () => {
               <PlayerTag
                 name={game.player1.name}
                 mark="✕"
-                isCurrentTurn={game.current_turn_player_id === game.player1.id}
+                isCurrentTurn={
+                  game.status === 'in_progress' &&
+                  game.current_turn_player_id === game.player1.id
+                }
                 playerId={game.player1.id}
               />
             )}
@@ -224,7 +227,10 @@ export const GameView: React.FC = () => {
               <PlayerTag
                 name={game.player2.name}
                 mark="○"
-                isCurrentTurn={game.current_turn_player_id === game.player2.id}
+                isCurrentTurn={
+                  game.status === 'in_progress' &&
+                  game.current_turn_player_id === game.player2.id
+                }
                 playerId={game.player2.id}
               />
             ) : (

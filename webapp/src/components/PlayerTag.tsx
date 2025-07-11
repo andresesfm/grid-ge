@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useGameStore } from '../state/gameStore';
 
 interface PlayerTagProps {
   name: string;
@@ -14,6 +15,8 @@ export const PlayerTag: React.FC<PlayerTagProps> = ({
   isCurrentTurn,
   playerId,
 }) => {
+  const { currentPlayer } = useGameStore();
+  const isCurrentUser = currentPlayer?.id === playerId;
   const playerClass = playerId === 1 ? 'player-1' : 'player-2';
 
   return (
@@ -40,7 +43,9 @@ export const PlayerTag: React.FC<PlayerTagProps> = ({
       <div className="player-mark">{mark}</div>
       <div className="player-info">
         <div className="player-name">{name}</div>
-        {isCurrentTurn && <div className="turn-indicator">Your Turn</div>}
+        {isCurrentTurn && isCurrentUser && (
+          <div className="turn-indicator">Your Turn</div>
+        )}
       </div>
       {isCurrentTurn && (
         <motion.div
