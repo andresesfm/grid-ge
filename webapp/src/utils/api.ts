@@ -6,7 +6,7 @@ import {
   LeaderboardType,
 } from '../types';
 
-const API_BASE_URL = 'http://localhost:3333/api';
+const API_BASE_URL = '/api';
 
 class ApiError extends Error {
   constructor(public status: number, message: string) {
