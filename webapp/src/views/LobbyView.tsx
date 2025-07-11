@@ -18,42 +18,38 @@ export const LobbyView: React.FC = () => {
   // Redirect to welcome if no current player
   useEffect(() => {
     if (!currentPlayer) {
-      navigate('/');
+      navigate('/', { replace: true });
     }
-  }, [currentPlayer, navigate]);
-
-  // Fetch games on component mount and then poll for updates
+  }, [currentPlayer, navigate]); // Fetch games on component mount and then poll for updates
   useEffect(() => {
+    console.log('LobbyView useEffect triggered, currentPlayer:', currentPlayer);
     if (!currentPlayer) return;
 
     const fetchGames = async () => {
       try {
+        console.log('Fetching games...');
         setIsLoading(true);
 
-        // Note: These endpoints might need to be implemented in the API
-        // For now, we'll use placeholder logic
-        const [waiting, user] = await Promise.all([
-          api.getWaitingGames().catch(() => []),
-          api.getUserGames(currentPlayer.id).catch(() => []),
-        ]);
-
-        setWaitingGames(waiting);
-        setUserGames(user);
+        // Note: These endpoints are not yet implemented in the API
+        // For now, we'll show empty arrays and handle gracefully
+        setWaitingGames([]);
+        setUserGames([]);
+        console.log('Games fetched successfully');
       } catch (error) {
         console.error('Failed to fetch games:', error);
-        addToast('Failed to load games', 'error');
+        // Don't show toast for now since endpoints don't exist
       } finally {
         setIsLoading(false);
+        console.log('Loading finished');
       }
     };
 
     fetchGames();
 
-    // Poll for updates every 5 seconds
-    const interval = setInterval(fetchGames, 5000);
-
-    return () => clearInterval(interval);
-  }, [currentPlayer, addToast]);
+    // Temporarily disable polling to debug rerendering issues
+    // const interval = setInterval(fetchGames, 5000);
+    // return () => clearInterval(interval);
+  }, [currentPlayer]);
 
   const handleCreateGame = async () => {
     if (!currentPlayer) return;

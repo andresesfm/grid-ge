@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Toast {
@@ -94,30 +94,38 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({
 export const useToast = () => {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const addToast = (
-    message: string,
-    type: Toast['type'] = 'info',
-    duration?: number
-  ) => {
-    const id = Math.random().toString(36).substr(2, 9);
-    const newToast: Toast = { id, message, type, duration };
-    setToasts((prev) => [...prev, newToast]);
-  };
+  const addToast = useCallback(
+    (message: string, type: Toast['type'] = 'info', duration?: number) => {
+      const id = Math.random().toString(36).substr(2, 9);
+      const newToast: Toast = { id, message, type, duration };
+      setToasts((prev) => [...prev, newToast]);
+    },
+    []
+  );
 
-  const removeToast = (id: string) => {
+  const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
+  }, []);
 
   return {
     toasts,
     addToast,
     removeToast,
-    success: (message: string, duration?: number) =>
-      addToast(message, 'success', duration),
-    error: (message: string, duration?: number) =>
-      addToast(message, 'error', duration),
-    info: (message: string, duration?: number) =>
-      addToast(message, 'info', duration),
+    success: useCallback(
+      (message: string, duration?: number) =>
+        addToast(message, 'success', duration),
+      [addToast]
+    ),
+    error: useCallback(
+      (message: string, duration?: number) =>
+        addToast(message, 'error', duration),
+      [addToast]
+    ),
+    info: useCallback(
+      (message: string, duration?: number) =>
+        addToast(message, 'info', duration),
+      [addToast]
+    ),
   };
 };
 
